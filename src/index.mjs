@@ -34,9 +34,26 @@ const users = [
     },
 ]
 
+const resolveIndexByUserId = (req, res, next) => {
+    const { params: { id } } = req;
+    const parsedId = parseInt(id);
+    if(isNaN(parsedId)){
+        return res.status(400).send({masg: "Bad Request! Invalid Id"});
+    }
+    const findUserIndex = users.findIndex((user) => user.id === parsedId);
+
+    if(findUserIndex === -1) return res.sendStatus(404);
+    req.findUserIndex = findUserIndex;
+    next();
+}
+
+const loggingMiddleware = (req, res, next) => {
+    console.log(`${req.method} - ${req.url}`)
+    next();
+}
+
 app.get("/", (req, res) => { 
     res.status(201).send({msg: "Hello World"});
- 
 })
 
 app.get("/api/users", (req, res) => {
@@ -52,15 +69,11 @@ app.get("/api/users", (req, res) => {
     return res.send(users);
 })
 
-app.get("/api/users/:id", (req, res) => { 
-    console.log(req.params);
-    const parsedId = parseInt(req.params.id);
-    if(isNaN(parsedId)){
-        return res.status(400).send({masg: "Bad Request! Invalid Id"});
-    }
-    const findUser = users.find((user) => user.id === parsedId);
+app.get("/api/users/:id", resolveIndexByUserId, (req, res) => { 
+    const { findUserIndex } = req;
+    const findUser = users[findUserIndex];
     if(!findUser) return res.sendStatus(404);
-    return res.send(findUser);
+    return res.send(findUser); 
 })
 
 app.post("/api/users", (req, res) => {
@@ -71,43 +84,21 @@ app.post("/api/users", (req, res) => {
   res.status(201).send("User Created");
 });
 
-app.patch("/api/users/:id", (req, res) => {  
-    const { body, params: { id } } = req;
-    const parsedId = parseInt(id);
-    if(isNaN(parsedId)){
-        return res.status(400).send({masg: "Bad Request! Invalid Id"});
-    }
-    const findUserIndex = users.findIndex((user) => user.id === parsedId);
-
-    if(findUserIndex === -1) return res.sendStatus(404);
+app.patch("/api/users/:id", resolveIndexByUserId, (req, res) => {  
+    const { body, findUserIndex } = req;
     // taking the existing user, putting it into a new object and after this overriding the key-value pairs in this object with key-value pairs within the request body
     users[findUserIndex] = { ...users[findUserIndex], ...body };
     return res.status(200).send("User Updated");
 })
   
-app.put("/api/users/:id", (req, res) => { 
-    const { body, params: { id } } = req;
-    const parsedId = parseInt(id);
-    if(isNaN(parsedId)){
-        return res.status(400).send({masg: "Bad Request! Invalid Id"});
-    }
-    const findUserIndex = users.findIndex((user) => user.id === parsedId);
-
-    if(findUserIndex === -1) return res.sendStatus(404);
-
-    users[findUserIndex] = { id: parsedId, ...body };
+app.put("/api/users/:id", resolveIndexByUserId, (req, res) => { 
+    const { body, findUserIndex } = req;
+    users[findUserIndex] = { id: users[findUserIndex].id, ...body };
     return res.status(200).send("User Updated");
 })
 
-app.delete("/api/users/:id", (req, res) => { 
-    const { params: { id } } = req;
-    const parsedId = parseInt(id);
-    if(isNaN(parsedId)){
-        return res.status(400).send({masg: "Bad Request! Invalid Id"});
-    }
-    const findUserIndex = users.findIndex((user) => user.id === parsedId);
-
-    if(findUserIndex === -1) return res.sendStatus(404);
+app.delete("/api/users/:id", resolveIndexByUserId, (req, res) => { 
+    const { findUserIndex } = req;
     users.splice(findUserIndex, 1);
     return res.status(200).send("User Deleted");
 })
