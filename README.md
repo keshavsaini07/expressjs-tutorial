@@ -143,3 +143,37 @@
             res.status(201).send({msg: "Hello World"});
         })
     ```
+
+13. Express-Validation -> Sometimes the data that you expect is not the data you recieve, in this case we want to make sure let's say if the username is less than or equal to 32 characters or less. The api in your express app doesn't know where that data is coming from, therefore server side validation is most important than the client side validation because it is where you are going to process the dat a, post it to the database or pass it to another external api.
+
+14. ValidationSchema -> Create a file named validationSchema in the utils folder - `src\utils\validationSchema.js`. This will help us in writing clean code in the middlewares when doing validation where we can use a schema for the same purpose. For this you will have to create an object, here is an example below:
+    ```
+        export const createUserValidationSchema = {
+            name: {
+                isLength: {
+                    options: {
+                        min: 3,
+                        max: 32,
+                    },
+                    errorMessage: {
+                        "name must be atleast 3 characters with a max of 32 characters",
+                    },
+                },
+                notEmpty: {
+                    errorMessage: "name cannot be empty",
+                },
+                isString: {
+                    errorMessage: "name must be a string",
+                },
+            },
+            sal: {
+                notEmpty: {
+                    errorMessage: "sal cannot be empty"
+                }
+            }
+        };
+    ```
+
+15. Routers -> Now we will study about how can we organize all of our requests using express routes. The problem right now is that even though we have only few routes defined as our app gorws we can have 50, 100, a whole bunch and you obviously dont want them all together in a single file. Now we want to group together your api endpoints based on domains, domains are the keywords (paths) which will help the api to route themselves based on these keywords. for e.g. the api can differentiate between `users` and `products` using these domains eventually it will act as a path for the api. 
+    1. `Router` will be used to create routes which actually has all the properties and methods that the express instance has. It is pretty much like a mini-application in the entire express app that can group together your requests.
+    2. Feature: One can register their requests on the router instead of the express app, while the router should also be registered to the entire express app.
