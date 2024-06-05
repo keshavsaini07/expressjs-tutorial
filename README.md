@@ -177,3 +177,49 @@
 15. Routers -> Now we will study about how can we organize all of our requests using express routes. The problem right now is that even though we have only few routes defined as our app gorws we can have 50, 100, a whole bunch and you obviously dont want them all together in a single file. Now we want to group together your api endpoints based on domains, domains are the keywords (paths) which will help the api to route themselves based on these keywords. for e.g. the api can differentiate between `users` and `products` using these domains eventually it will act as a path for the api. 
     1. `Router` will be used to create routes which actually has all the properties and methods that the express instance has. It is pretty much like a mini-application in the entire express app that can group together your requests.
     2. Feature: One can register their requests on the router instead of the express app, while the router should also be registered to the entire express app.
+
+16. Routes -> Create a folder named routes in the src folder and organize all of your routes in the routes folder and use a common index.mjs file for importing all of your routes into one single file so that to write clean and efficient code. 
+    for e.g. Now simply import this single `index.mjs` file into your main index.mjs in the src folder to implement clean code.
+    ```
+        import { Router } from "express";
+
+        import usersRouter from "./user-routes.mjs";
+        import productsRouter from "./product-routes.mjs";
+
+        const router = Router();
+
+        router.use(usersRouter);
+        router.use(productsRouter);
+
+        export default router;
+
+    ```
+
+17. Cookies ->  Cookies are a very simple concept but a lot of people don't quite understand their purpose. Http Cookies are a small piece of data that your web server sends to the web browser. Now you are wondering well why is it important, so by default the HTTP is a stateless protocol (whenever you make a request to the server it doesn't who the user is). A Cookie is an unique value so that the server can distinguish whom does this belong to when recieved.
+    Purpose: 
+    1. When the web browser recieves any cookie it can be stored on the browser and later sent by the browser back to the server on any request. 2. The main objective is to identify and verify users who have already logged/signed in.  
+    3. It also help maintain and track user sessions.
+    4. Most of times in realistic large applications where authentication is present, you use cookies alongside with sessions but we will for now focus primarily on cookies and continue about sessions later on.
+    for e.g. To develop a cart like system in an e-commerce application you can use something like cookies to maintain user session even after the user closes the app window and returns back to the application so that user can continue from where they left previously i.e. session resuming.
+
+18. Usage of Cookies through requests: 
+    1. `cookie()` -> it has three parameters: `name`, `value` and `options`
+    2. Options:- 
+    - `maxAge`: cookie expire time limit,  
+    - `signed`: true if you ever need to set a  signed cookie,
+    - `Note`- But in order to actually parse a signed cookie you will need a `secret`, and if you try accessing the cookie the cookiParser will throw you an error like - `Error: cookieParser("secret") required for signed cookies`
+    2. A cookie is accessed through `headers` but the problem here is that it's not parsed, we need to have it in a string format.
+    3. We now have two options to parse it manually or use a third party package called cookie-parser to do the job for us.
+    4. Just to confirm that the cookies are being sent to the server but they are not being parsed in the way as expected.
+    5. After installing the `cookie-parser` package, you also need to import and enable it using the middlewares. Also you can pass some additional values like a `secret key` into this cookieParser function to parse for example a signed key which realy is a key that has a signature. Note- Most of the third party packages in express are to be used as middlewares.
+    6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you the you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for example -
+    ```
+        router.get("/api/products", (req, res) => {
+        console.log(req.headers.cookie);
+        console.log(req.cookies)
+        if (req.cookies.cookkie && req.cookies.cookkie === "hello world")
+            return res.send([{ id: 101, name: "Dosa", price: 60 }]);
+
+        return res.status(403).send({msg: "Sorry! Please retry with a correct cookie."})
+        });
+    ```
