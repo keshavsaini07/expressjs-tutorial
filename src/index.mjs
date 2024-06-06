@@ -48,6 +48,31 @@ app.get("/api/auth/status", (req, res) => {
   return req.session.user ? res.status(200).send(req.session.user) : res.status(401).send({msg: "UNAUTHORIZED ACTION"});
 });
 
+app.post("/api/cart", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).send({ msg: "UNAUTHORIZED ACTION " });
+  }
+  // assuming all values in request body are valid
+  const { body: item } = req;
+
+  const { cart } = req.session;
+  
+  if(cart){
+    cart.push(item);
+  }
+  else{
+    req.session.cart = [item];
+  }
+
+  res.status(200).send(item);
+});
+
+app.get("/api/cart", (req, res) => {
+  return req.session.user
+    ? res.status(200).send(req.session.cart ?? []) 
+    : res.status(401).send({ msg: "UNAUTHORIZED ACTION" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on port : ${PORT}`);
 });

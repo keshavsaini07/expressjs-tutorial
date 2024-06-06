@@ -288,5 +288,35 @@
             user: { id: 1, username: 'adam', sal: 2000, password: 'himank123' }
         }
     ```
+    6. Added a cart based functionality where a specified user can add items to their cart, only the users who are authenticated. Each `user` will have their own cart which is `mapped` to their `sessionID`. <br/>
+    for example - 
+    ```
+        // adding an item to a cart
+        app.post("/api/cart", (req, res) => {
+            if (!req.session.user) {
+                return res.status(401).send({ msg: "UNAUTHORIZED ACTION " });
+            }
+            // assuming all values in request body are valid
+            const { body: item } = req;
+
+            const { cart } = req.session;
+            
+            if(cart){
+                cart.push(item);
+            }
+            else{
+                req.session.cart = [item];
+            }
+
+            res.status(200).send(item);
+        });
+
+        // retrieving all the items of cart
+        app.get("/api/cart", (req, res) => {
+            return req.session.user
+                ? res.status(200).send(req.session.cart ?? []) 
+                : res.status(401).send({ msg: "UNAUTHORIZED ACTION" });
+        });
+    ```
 
     
