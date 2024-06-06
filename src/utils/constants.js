@@ -1,27 +1,32 @@
 export const users = [
   {
     id: 1,
-    name: "adam",
+    username: "adam",
     sal: 2000,
+    password: "himank123"
   },
   {
     id: 2,
-    name: "rohit",
+    username: "rohit",
     sal: 3000,
+    password: "himank123"
   },
   {
     id: 3,
-    name: "diamy",
+    username: "diamy",
     sal: 5000,
+    password: "himank123"
   },
   {
     id: 4,
-    name: "maki",
+    username: "maki",
     sal: 4000,
+    password: "himank123"
   },
   {
     id: 5,
-    name: "yuji",
+    username: "yuji",
     sal: 2000,
+    password: "himank123"
   },
 ];

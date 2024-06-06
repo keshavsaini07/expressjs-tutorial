@@ -195,11 +195,12 @@
 
     ```
 
-17. Cookies ->  Cookies are a very simple concept but a lot of people don't quite understand their purpose. Http Cookies are a small piece of data that your web server sends to the web browser. Now you are wondering well why is it important, so by default the HTTP is a stateless protocol (whenever you make a request to the server it doesn't who the user is). A Cookie is an unique value so that the server can distinguish whom does this belong to when recieved.
+17. Cookies ->  Cookies are a very simple concept but a lot of people don't quite understand their purpose. `Http Cookies` are a `small piece of data` that your `web server` sends to the `web browser`. Now you are wondering well why is it important, so by default the `HTTP` is a `stateless protocol` (whenever you make a request to the server it doesn't who the user is). A Cookie is an `unique value` so that the server can distinguish whom does this belong to when recieved.
     Purpose: 
-    1. When the web browser recieves any cookie it can be stored on the browser and later sent by the browser back to the server on any request. 2. The main objective is to identify and verify users who have already logged/signed in.  
-    3. It also help maintain and track user sessions.
-    4. Most of times in realistic large applications where authentication is present, you use cookies alongside with sessions but we will for now focus primarily on cookies and continue about sessions later on.
+    1. When the web browser recieves any cookie it can be stored on the browser and later sent by the browser back to the server on any request. 
+    2. The main objective is to `identify and verify users` who have already logged/signed in.  
+    3. It also help `maintain and track user sessions.`
+    4. Most of times in realistic large applications where authentication is present, you use cookies alongside with sessions but we will for now focus primarily on cookies  and continue about sessions later on.
     for e.g. To develop a cart like system in an e-commerce application you can use something like cookies to maintain user session even after the user closes the app window and returns back to the application so that user can continue from where they left previously i.e. session resuming.
 
 18. Usage of Cookies through requests: 
@@ -212,7 +213,7 @@
     3. We now have two options to parse it manually or use a third party package called cookie-parser to do the job for us.
     4. Just to confirm that the cookies are being sent to the server but they are not being parsed in the way as expected.
     5. After installing the `cookie-parser` package, you also need to import and enable it using the middlewares. Also you can pass some additional values like a `secret key` into this cookieParser function to parse for example a signed key which realy is a key that has a signature. Note- Most of the third party packages in express are to be used as middlewares.
-    6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you the you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for example -
+    6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you the you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for  example -
     ```
         router.get("/api/products", (req, res) => {
         console.log(req.headers.cookie);
@@ -223,3 +224,36 @@
         return res.status(403).send({msg: "Sorry! Please retry with a correct cookie."})
         });
     ```
+    7. Also you can use signed cookies by using `signed option` and `passing a secret to cookieParser()`, while using signedCookies instead of cookies in the above mentioned example, you cna also visit my commits history to check for signed commits.
+
+19. Sessions -> Sessions represent the duration of a user on a website or application. As Http is stateless, we don't know who is making requests to our server so we need to track these requests and know where they are coming from. One common usage of sessions is `user authentication`. Sessions are created on server by generating an object by a `session id` (like abc123). 
+    1. When an http request is sent to  the server form the web browser the response can return instructions to set a cookie with the session id so that they can be saved in the browser.
+    2. This allows the browser to send the same cookie on the subsequent requests to the server.
+    3. The server can then parse the cookie from text to json, then verify the session id which was sent form the client, and determine who sent the request. 
+    4. Whenever the browser sends the cookie on each request, the server can then lookup which user pertains to the corresponding session as it maintains a `mapping` of each `session id` to the `user`.
+    5. We will use the `express-session` library to implement sessions which is a third party package.
+
+20. Usage Of Sessions - express-session library
+    1. options
+        - `secret`: you need to set it a string, ideally it should be sophisticated that is not guessable and complicated,
+        - `saveUninitialized`: this property along with next one called resave is related to session stores. We currently don't have any session storage configured, but express does use `inmemory storage by default`. this property forces a session that is `uninitialized` to be saved to the store. A session is `uninitialized` when it is `new` but not `modified`. The main part is you want `saveUninitialized` set to `false` when you dont want it to save an unmodified session data to the session stores.
+        for example- by default if every single user visits the website and they are not doing anything, they are just visiting it, and if you have `saveUninitialized` set to true it will actually save the session object to the session store even if it doesn't have anything at all and this can actually take up the memory of the session storage. Ideally you want `saveUninitialized` to be set to false when building user authentication, or managing user sessions.
+        - `resave`: it forces the session to be saved back to the session store, even if the session was never modified during the request. Set above both properties to be false for now and don't worry.
+        - `cookie`: it has same properties that we talked about in cookies above like maxAge.
+    2. session object 
+        when you will modify the session data object then express-session will create a cookie or it will set a cookie and then it will be sent to the client side or browser where it will be stored and then on subsequent requests that coookie will be sent to the server assuming it has not been expired. Now, the server will go through the whole express-session middleware and validate the recieved cookie making sure it's not invalid or expired, then express session will actually wont generate a new session or session id. By modifying this session data object can help us in tracking users using our websites and api, and if we don't we will be having brand new sessions all the time for every requests.
+    3. Here is an example for dummy authentication system that can be implemented using sessions and cookies. for example -
+    ```
+        app.post("/api/auth", (req, res) => {
+            const { body: { username, password } } = req;
+            const findUser = users.find( (user) => user.username === username);
+            if(!findUser || findUser.password !== password){
+                return res.status(401).send({msg: "BAD CREDENTAILS!"})
+            }
+
+            req.session.user = findUser;
+
+            res.status(200).send(findUser);
+        });
+    ```
+    
