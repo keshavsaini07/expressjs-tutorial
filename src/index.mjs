@@ -41,6 +41,13 @@ app.post("/api/auth", (req, res) => {
   res.status(200).send(findUser);
 });
 
+app.get("/api/auth/status", (req, res) => {
+  req.sessionStore.get(req.sessionID, (err, sessionData) => {
+    console.log(sessionData);
+  });
+  return req.session.user ? res.status(200).send(req.session.user) : res.status(401).send({msg: "UNAUTHORIZED ACTION"});
+});
+
 app.listen(PORT, () => {
   console.log(`Server started on port : ${PORT}`);
 });

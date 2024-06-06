@@ -216,12 +216,12 @@
     6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you the you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for  example -
     ```
         router.get("/api/products", (req, res) => {
-        console.log(req.headers.cookie);
-        console.log(req.cookies)
-        if (req.cookies.cookkie && req.cookies.cookkie === "hello world")
-            return res.send([{ id: 101, name: "Dosa", price: 60 }]);
+            console.log(req.headers.cookie);
+            console.log(req.cookies)
+            if (req.cookies.cookkie && req.cookies.cookkie === "hello world")
+                return res.send([{ id: 101, name: "Dosa", price: 60 }]);
 
-        return res.status(403).send({msg: "Sorry! Please retry with a correct cookie."})
+            return res.status(403).send({msg: "Sorry! Please retry with a correct cookie."})
         });
     ```
     7. Also you can use signed cookies by using `signed option` and `passing a secret to cookieParser()`, while using signedCookies instead of cookies in the above mentioned example, you cna also visit my commits history to check for signed commits.
@@ -256,4 +256,37 @@
             res.status(200).send(findUser);
         });
     ```
+    4. Here is a an example of a status api that can be accessed when you are authenticated. 
+    ```
+        app.get("/api/auth/status", (req, res) => {
+            req.sessionStore.get(req.sessionID, (err, sessionData) => {
+                console.log(sessionData);
+            });
+            return req.session.user 
+                ? res.status(200).send(req.session.user) 
+                : res.status(401).send({msg: "UNAUTHORIZED ACTION"});
+        });
+    ```
+    5. In the previous example you can also see via different clients like thunderclient and postman to login as different users, you can see the `mapping` between the `sessionID` with its `user`. <br/>
+    for example you will have something like this - 
+    ```
+        {
+            cookie: {
+                originalMaxAge: 3600000,
+                expires: '2024-06-06T19:29:10.989Z',
+                httpOnly: true,
+            },
+            user: { id: 5, username: 'yuji', sal: 2000, password: 'himank123' }
+        }
+        {
+            cookie: {
+                originalMaxAge: 3600000,
+                expires: '2024-06-06T19:28:27.733Z',
+                httpOnly: true,
+                path: '/'
+            },
+            user: { id: 1, username: 'adam', sal: 2000, password: 'himank123' }
+        }
+    ```
+
     
