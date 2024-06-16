@@ -319,4 +319,39 @@
         });
     ```
 
-    
+21. `Authentication with PassportJS` -> In this part, we will be using a local strategy for authentication instead of handling it via `third party` providers like `google`, `facebook`, or `twitter`, the credentials will be stored on our local array (in memmory storage) instead of database because we don't have the database. We will use `local authentication` and later on use `OAuth2` to integrate third party services for authentication.
+    1. Install `passport` and `passport-local` : <br/> 
+    Note - `Passport` integrates well with `express-session` and many times you will use passport with express-session or vice-versa, but you don't need to do it but it is highly `recommended` use both of them together because passport will take care of the `mapping` that user who is `logging in` with its `session id`.
+    ```
+        npm i passport passport-local
+    ``` 
+    2. Use the below given middlewares:
+        - `app.use(passport.initialize());` : Initializes Passport for incoming requests, allowing authentication strategies to be applied.
+        - `app.use(passport.session());` : Middleware that will restore login state from a session. Web applications typically use sessions to maintain login state between requests. If sessions are being utilized, and a login session has been established, this middleware will `populate` (attaching a dynamic property) `req.user` with the `current user`.
+    3. Now create a file named `local-strategy.mjs` in the directory - `utils/strategy/`. Now we will use the strategy object as the middleware to verify the user. After finding the user we will serialize the user using `serializeUser` method.
+        - `serializeUser` : Registers a function used to serialize user objects into the session.
+        - `deserializeUser` : Registers a function used to deserialize user objects out of the session. In other words, it kind of reveals who the actual user. It takes that user object via the id and stores it into the request object itself.
+    4. `Setup login and logout routes` :
+        - `login` : Setup a login routes for users
+        ```
+            app.post("/api/auth", passport.authenticate('local'), (req, res) => {
+                res.status(200).send({msg: "User Login Success"})
+            } )
+        ```
+        - `logout` : setup a logout route for users using post
+        ```
+            app.post("/api/auth/logout", (req, res) => {
+                return req.user ? req.logout((err)  => {
+                    if(err) return res.sendStatus(400);
+                    res.status(200).send("User Logged Out")
+                    }) : res.status(401).send({msg: "UNAUTHORIZED ACTION"})
+            } )
+        ```
+        - `status check` : this routes is to check if user is able to access the functions which they cannot if they are logged out
+        ```
+            app.get("/api/auth/status", (req, res) => {
+                console.log("Inside auth status");
+                console.log(req.user);
+                return req.user ? res.send(req.user) : res.status(401).send({msg: "UNAUT HORIZED ACTION"})
+            })
+        ```
