@@ -362,4 +362,28 @@
     }).catch((err) => console.log(`Error: ${err}`))
     ```
     - `Mongoose` : It is a very popular ORM which helps in creating, querying and structuring mongodb databases, they are safe and efficient to use as in development ORMs are used for interacting with databases.
-    - `schema` : a way for defining your database collections, shaping up data
+    - `schema` : a way for defining your database collections, shaping up data. define schemas for your models and you're good to go
+
+23. Hash Passwords -> Firtsly install the bcrypt library for hashing the passwords so that it is safe from others and maintain user privacy.
+    1. `saltRounds` : The saltRounds are basically how much time is needed to calculate the hash for bcrypt, so more number of rounds means more complexity for it and the docs recommend for atleast 10 rounds.
+    2. `genSalt` : It generates salt round for the given value of saltRounds. `genSaltSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
+    3. `hash` : It takes two arguments - <b> password</b> and <b>salt</b>. It generates hashed value for the given password. The `hashSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
+    4. `compare` : It takes two passwords as arguments, which are to be compared. This fucntion returns a <b>boolean</b> valued based on the comparison of two given passwords. The `compareSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
+    5.`helpers.mjs`: Create a helpers.mjs file in utils folder and paste the following code:-
+        ```
+        import bcrypt from 'bcrypt'
+
+        const saltRounds = 10;
+
+        // generates hashed version of a password
+        export const hashPassword = (password) => {
+            const salt = bcrypt.genSaltSync(saltRounds);
+            console.log(salt)
+            return bcrypt.hashSync(password, salt);
+        };
+
+        // compares two given passwords
+        export const comparePassword = (plainPassword, hashedPassword) => {
+            return bcrypt.compareSync(plainPassword, hashedPassword);
+        }
+        ```

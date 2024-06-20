@@ -3,6 +3,7 @@ import { query, validationResult, checkSchema, matchedData } from "express-valid
 import { users } from "../utils/constants.js";
 import { createUserValidationSchema } from "../utils/validationSchemas.mjs";
 import { User } from "../mongoose/models/user.mjs";
+import { hashPassword } from "../utils/helpers.mjs";
 
 const router = Router();
 
@@ -67,7 +68,10 @@ router.post(
       res.status(400).send({ errors: result.array() });
     }
     const data = matchedData(req);
-    console.log(data);
+    // console.log(data);
+
+    data.password = hashPassword(data.password);
+    // console.log(data);
 
     const newUser = new User(data);
 

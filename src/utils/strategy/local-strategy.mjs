@@ -2,6 +2,7 @@ import passport from "passport";
 import { Strategy } from "passport-local";
 import { users } from "../constants.js";
 import { User } from "../../mongoose/models/user.mjs";
+import { comparePassword } from "../helpers.mjs";
 
 // when a user logs in this serializeUser function needs to be called, and the user will log in once until they logs out
 passport.serializeUser((user, done) => {
@@ -32,8 +33,8 @@ export default passport.use(
       if (!findUser) { 
         throw new Error("User not found");
       }
-      if (findUser.password !== password) {
-        throw new Error("Invalid Credentials");
+      if (!comparePassword(password, findUser.password)) {
+        throw new Error("Invalid Credentials"); 
       }
       // done(error-null, user-findUser) : if user found then pass it into done()
       done(null, findUser);
