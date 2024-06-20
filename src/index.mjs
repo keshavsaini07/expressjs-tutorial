@@ -4,8 +4,16 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import passport from "passport";
 import "./utils/strategy/local-strategy.mjs"
+import mongoose from "mongoose";
 
 const app = express();
+
+mongoose
+  .connect("mongodb://127.0.0.1/express-tutorial")
+  .then(() => {
+    console.log("Database Connected");
+  })
+  .catch((err) => console.log(`Error: ${err}`));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -45,3 +53,4 @@ app.listen(PORT, () => {
   console.log(`Server started on port : ${PORT}`);
 });
 
+ 

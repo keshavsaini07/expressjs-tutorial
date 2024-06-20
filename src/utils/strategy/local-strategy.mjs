@@ -1,6 +1,7 @@
 import passport from "passport";
 import { Strategy } from "passport-local";
 import { users } from "../constants.js";
+import { User } from "../../mongoose/models/user.mjs";
 
 // when a user logs in this serializeUser function needs to be called, and the user will log in once until they logs out
 passport.serializeUser((user, done) => {
@@ -9,10 +10,10 @@ passport.serializeUser((user, done) => {
 })
 
 // once we have logged in, any request that we make later on, then passport will call the deserializeUser function, also check for valid user
-passport.deserializeUser((id, done) => {
+passport.deserializeUser(async (id, done) => {
     console.log("Inside Deserialize user", id)
    try {
-     const findUser = users.find((user) => user.id === id);
+     const findUser = await User.findById(id);
      if (!findUser) {
        throw new Error("User not found");
      }
@@ -23,12 +24,12 @@ passport.deserializeUser((id, done) => {
 })
 
 export default passport.use(
-  new Strategy((username, password, done) => {
+  new Strategy(async (username, password, done) => {
     console.log(`username: ${username}, password: ${password}`)
     // validate the user and do many other things
     try {
-      const findUser = users.find((user) => user.username === username);
-      if (!findUser) {
+      const findUser = await User.findOne({ username });
+      if (!findUser) { 
         throw new Error("User not found");
       }
       if (findUser.password !== password) {

@@ -355,3 +355,11 @@
                 return req.user ? res.send(req.user) : res.status(401).send({msg: "UNAUT HORIZED ACTION"})
             })
         ```
+22. Databases -> In this part, we will connect to mongodb database using mongoose. For this install both mongodb and mongoose. Use the given below code to connect to the database :   
+    ```
+    mongoose.connect('mongodb://127.0.0.1/express-tutorial').then(() => {
+        console.log("Database Connected")
+    }).catch((err) => console.log(`Error: ${err}`))
+    ```
+    - `Mongoose` : It is a very popular ORM which helps in creating, querying and structuring mongodb databases, they are safe and efficient to use as in development ORMs are used for interacting with databases.
+    - `schema` : a way for defining your database collections, shaping up data
