@@ -213,7 +213,7 @@
     3. We now have two options to parse it manually or use a third party package called cookie-parser to do the job for us.
     4. Just to confirm that the cookies are being sent to the server but they are not being parsed in the way as expected.
     5. After installing the `cookie-parser` package, you also need to import and enable it using the middlewares. Also you can pass some additional values like a `secret key` into this cookieParser function to parse for example a signed key which realy is a key that has a signature. Note- Most of the third party packages in express are to be used as middlewares.
-    6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you the you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for  example -
+    6. `Actually once the browser has recieved the cookie sent by the web server then until the satisfying conditions are met the browser will sent the cookies attached with every request.` Its basically saying like when I send the cookie back to you then you need to send it back to me in order for you to access data. The server will always check for the valid cookie value in order to verify the user. <br/> This is where you can see how authentication and authorisation can be worked. for  example -
     ```
         router.get("/api/products", (req, res) => {
             console.log(req.headers.cookie);
@@ -364,12 +364,12 @@
     - `Mongoose` : It is a very popular ORM which helps in creating, querying and structuring mongodb databases, they are safe and efficient to use as in development ORMs are used for interacting with databases.
     - `schema` : a way for defining your database collections, shaping up data. define schemas for your models and you're good to go
 
-23. Hash Passwords -> Firtsly install the bcrypt library for hashing the passwords so that it is safe from others and maintain user privacy.
+23. Hash Passwords -> Firstly install the bcrypt library for hashing the passwords so that it is safe from others and maintain user privacy.
     1. `saltRounds` : The saltRounds are basically how much time is needed to calculate the hash for bcrypt, so more number of rounds means more complexity for it and the docs recommend for atleast 10 rounds.
     2. `genSalt` : It generates salt round for the given value of saltRounds. `genSaltSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
     3. `hash` : It takes two arguments - <b> password</b> and <b>salt</b>. It generates hashed value for the given password. The `hashSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
-    4. `compare` : It takes two passwords as arguments, which are to be compared. This fucntion returns a <b>boolean</b> valued based on the comparison of two given passwords. The `compareSync` works similarly as this function but does all things synchronously where you donot need to use async-await.
-    5.`helpers.mjs`: Create a helpers.mjs file in utils folder and paste the following code:-
+    4. `compare` : It takes two passwords as arguments, which are to be compared. This fucntion returns a <b>boolean</b> valued based on the comparison of two given passwords. The `compareSync` works similarly as this function but does all things synchronously where you donot need to use async-await. <br>
+    5. `helpers.mjs`: Create a helpers.mjs file in utils folder and paste the following code:-
         ```
         import bcrypt from 'bcrypt'
 
@@ -387,3 +387,10 @@
             return bcrypt.compareSync(plainPassword, hashedPassword);
         }
         ```
+24. Session Store -> This is something that you  very likely will need especially when you want to persist session data for the user. 
+    1. <b>So the problem we have now is that if our server goes down for unknown reasons and they might restart, when that happens all of your `session data` will also be `erased` as express stores it in memory by default i.e. `current user session gets terminated whenever server goes down`. </b>
+    2. <b> To resolve this you need to store it in the database to maintain a `persistent system` so that whenever the server goes down and if it goes back up, then the `session store` will have the session data there and `express-session` will look in that session store in the database to grab the session data and `restore` it for `user`. </b>
+    3. We will store this session data in the database which was getting erased whenever our server goes down for whatever reasons to restore user sessions and session data.
+    4. `connect-mongo` : It is a express package, pretty much is a session store for mongodb. Packages with same fucntionality are available for almost every other type of dbs.
+    5. We will use an <b>option</b> - `store`, to make a connection with the client and store it in mongo sessions store. What happens underneath the hood is when we send request to the server (remember we are sending the cookie back to the server) it gets parsed on the server, express-session will now look for the session id in the mongo sessions. 
+    6. The whole `req.session object` after stringifying gets attached to the <b>session</b> property in the mongo sessions and its session id is paired to the id property..
