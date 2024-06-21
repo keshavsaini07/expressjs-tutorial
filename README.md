@@ -394,3 +394,89 @@
     4. `connect-mongo` : It is a express package, pretty much is a session store for mongodb. Packages with same fucntionality are available for almost every other type of dbs.
     5. We will use an <b>option</b> - `store`, to make a connection with the client and store it in mongo sessions store. What happens underneath the hood is when we send request to the server (remember we are sending the cookie back to the server) it gets parsed on the server, express-session will now look for the session id in the mongo sessions. 
     6. The whole `req.session object` after stringifying gets attached to the <b>session</b> property in the mongo sessions and its session id is paired to the id property..
+
+25. OAuth2 -> In this part we will see how to set up oauth2 using passport js to allow third party providers such as google, facebook, discord but for our main purpose will use discord to achieve and you can follow the process similarly for others. <br>
+    For setting up third party providers, the following steps are to be taken: <br>
+    1. You need to create an application with any desired name in the developers section of your chosen third party provider. Then you need to copy the <b>client-id</b>, <b>client-secret</b> and also add a <b>redirection-url</b> (which will redirect the user after authorizing it to our application again)
+    2. Now you need to install the best required strategy package for the respective third party providers from `passportjs.org`. In our case we will install `passport-discord` for our usecase. 
+    3. Now we will temporarily disable the local strategy package. And prepare the startegy file for discord using passport-discord. In strategy object we need to check to see if the user exists in the database and if they dont then save the user record to the database. To associate the user on platform using 1:1 or 1:M or M:M relationships, so you need to store the record to the database.
+    4. The <b>Strategy()</b> object accepts four options defined below:-
+        - `clientID` : It is the client-id of your application in the oauth2 section of your application in respective third party provider.
+        - `clientSecret` : It is the client-secret of your application in the oauth2 section which is to be kept hidden for security purposes.
+        - `callbackURL` : It is the url to which the user will be redirected after successfull authorization.
+        - `scope` : It accepts an array of elmenents. The scope field is important because we actually need to state what type of permissions or fields you are going to access from the user account is defined all this like for example username, discord id. These scopes are defined differently on each platform but if you leave them empty you dont have any access to user's information.
+    5. Paste the following code for:
+        - `index.mjs` file - Also include the <b>discord-strategy.mjs file</b> in <b>index.mjs</b>
+            ```
+            app.get("/api/auth/status", (req, res) => {
+                console.log("Inside auth status");
+                console.log(req.user);
+                return req.user
+                    ? res.send(req.user)
+                    : res.status(401).send({ msg: "UNAUTHORIZED ACTION" });
+            });
+
+            app.get("/api/auth/discord", passport.authenticate("discord"));
+            app.get("/api/auth/discord/redirect", passport.authenticate("discord"), (req, res) => {
+                console.log("1 - Inside auth discord")
+                console.log(req.session);
+                console.log(req.user)
+                res.sendStatus(200);
+            });
+            ```
+        - `discord-strategy.mjs` file -
+            ```
+            import passport from "passport";
+            import { Strategy } from "passport-discord";
+            import { DiscordUser } from "../../mongoose/models/discord-user.mjs";
+
+            passport.serializeUser((user, done) => {
+                console.log("3 - Inside Serialize user", user);
+                done(null, user.id);
+            });
+
+            passport.deserializeUser(async (id, done) => {
+                console.log("4 - Inside Deserialize user", id);
+                try {
+                    const findUser = await DiscordUser.findById(id);
+                    return findUser ? done(null, findUser) : done(null, null);
+                } catch (error) {
+                    done(error, null);
+                } 
+            });
+
+            export default passport.use(
+                new Strategy(
+                    {
+                        clientID: "1253759135581995009",
+                        clientSecret: "TMZyHVgXB17ER_0vgUOVO5ZAslw_xvNb",
+                        callbackURL: "http://localhost:3000/api/auth/discord/redirect",
+                        scope: ["identify"],
+                    },
+                    async (accessToken, refreshToken, profile, done) => {
+                        console.log("2 - Inside Strategy")
+                        let findUser;
+                        try {
+                            findUser = await DiscordUser.findOne({ discordId: profile.id });
+                        } catch (error) {
+                            return done(error, null);
+                        }
+                        try {
+                            if (!findUser) {
+                            const newUser = new DiscordUser({
+                                username: profile.username,
+                                discordId: profile.id,
+                            });
+                            const newSavedUser = await newUser.save();
+                            return done(null, newSavedUser)
+                            }
+                            return done(null, findUser);
+                        } catch (error) {
+                            console.log(error)
+                            return done(error, null)
+                        }
+                    }
+                )
+            );
+            ```
+    6. Now everything is prepared, what you need to do is authorize the user by visiting this endpoint - `http://localhost:3000/api/auth/discord/redirect` and now on successful authorization you can access other api/endpoints of your application or server, for example you can try it by visiting the status endpoint - `http://localhost:3000/api/auth/status`
